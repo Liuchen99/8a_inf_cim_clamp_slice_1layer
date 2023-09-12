@@ -212,7 +212,7 @@ class BasicBlock_1w8a_q(nn.Module):
         return out, T_a2, T_w2
 
     def forward(self, x):
-        if (self.layer_idx == 1) and (self.idx == 1):
+        if (self.layer_idx == 1) and ((self.idx == 1) or (self.idx == 2)):
             out = x
         else:
             # ---------------------conv1-----------------------
@@ -230,23 +230,25 @@ class BasicBlock_1w8a_q(nn.Module):
             # ---------------------hardtanh1-----------------------
             T_hardtanh = torch.round(7 * 1023 / T_a * 7 / T_w).float()
             out = torch.round(F.hardtanh(out, min_val=-T_hardtanh, max_val=T_hardtanh) / T_hardtanh * 7)
-
-        x1 = out
-        x1_cim = x1
-        # ---------------------conv2-----------------------
-        cim_conv2 = ir_1w8a.IRConv2d_cim(self.conv2.in_channels, self.conv2.out_channels, kernel_size=(3, 3),
-                                         stride=self.conv2.stride, padding=self.conv2.padding, bias=False)
-        cim_conv2.weight = self.conv2.weight
-        out, sw_conv2 = cim_conv2(x1_cim)
-        sw_conv2 = sw_conv2.view(1, sw_conv2.shape[0], 1, 1)
-        # ---------------------bn2-----------------------
-        out, T_a2, T_w2 = self.my_bn2(out, sw_conv2, 0, self.conv2.in_channels)
-        # ---------------------add2-----------------------
-        short_cut = torch.round(1023 / T_a2 * 7 / T_w2)
-        out = torch.round(out + (x1 * short_cut))
-        # ---------------------hardtanh2-----------------------
-        T_hardtanh2 = torch.round(7 * 1023 / T_a2 * 7 / T_w2).float()
-        out = torch.round(F.hardtanh(out, min_val=-T_hardtanh2, max_val=T_hardtanh2) / T_hardtanh2 * 7)
+        if (self.layer_idx == 1) and ((self.idx == 1) or (self.idx == 2)):
+            out = out
+        else:
+            x1 = out
+            x1_cim = x1
+            # ---------------------conv2-----------------------
+            cim_conv2 = ir_1w8a.IRConv2d_cim(self.conv2.in_channels, self.conv2.out_channels, kernel_size=(3, 3),
+                                             stride=self.conv2.stride, padding=self.conv2.padding, bias=False)
+            cim_conv2.weight = self.conv2.weight
+            out, sw_conv2 = cim_conv2(x1_cim)
+            sw_conv2 = sw_conv2.view(1, sw_conv2.shape[0], 1, 1)
+            # ---------------------bn2-----------------------
+            out, T_a2, T_w2 = self.my_bn2(out, sw_conv2, 0, self.conv2.in_channels)
+            # ---------------------add2-----------------------
+            short_cut = torch.round(1023 / T_a2 * 7 / T_w2)
+            out = torch.round(out + (x1 * short_cut))
+            # ---------------------hardtanh2-----------------------
+            T_hardtanh2 = torch.round(7 * 1023 / T_a2 * 7 / T_w2).float()
+            out = torch.round(F.hardtanh(out, min_val=-T_hardtanh2, max_val=T_hardtanh2) / T_hardtanh2 * 7)
 
         return out
 

@@ -22,7 +22,7 @@ from resnet import resnet12_1w8a
 from run import train, test, save_checkpoint, find_bounds_clr
 import torchvision.transforms as transforms
 
-from layer1_newboard import layer1
+from layers_1to4_ip import layer1
 
 
 import numpy as np
