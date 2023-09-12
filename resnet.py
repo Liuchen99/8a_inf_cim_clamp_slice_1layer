@@ -212,7 +212,7 @@ class BasicBlock_1w8a_q(nn.Module):
         return out, T_a2, T_w2
 
     def forward(self, x):
-        if (self.layer_idx == 1) and ((self.idx == 1) or (self.idx == 2)):
+        if (self.layer_idx == 1) and (self.idx == 1):
             out = x
         else:
             # ---------------------conv1-----------------------
@@ -230,7 +230,7 @@ class BasicBlock_1w8a_q(nn.Module):
             # ---------------------hardtanh1-----------------------
             T_hardtanh = torch.round(7 * 1023 / T_a * 7 / T_w).float()
             out = torch.round(F.hardtanh(out, min_val=-T_hardtanh, max_val=T_hardtanh) / T_hardtanh * 7)
-        if (self.layer_idx == 1) and ((self.idx == 1) or (self.idx == 2)):
+        if (self.layer_idx == 1) and (self.idx == 1):
             out = out
         else:
             x1 = out
